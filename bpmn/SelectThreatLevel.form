@@ -1,0 +1,41 @@
+{
+  "components": [
+    {
+      "label": "Select appropriate threat level",
+      "values": [
+        {
+          "label": "False Positive",
+          "value": "falsePositive"
+        },
+        {
+          "label": "Monitor (Low risk)",
+          "value": "monitor"
+        },
+        {
+          "label": "Confirm as Real Threat",
+          "value": "realThreat"
+        }
+      ],
+      "type": "select",
+      "layout": {
+        "row": "Row_12ej58s",
+        "columns": null
+      },
+      "id": "Field_0gfvfb9",
+      "key": "selectThreat",
+      "description": "Please select what was the level of the potential threat",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "selectThreatForm",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

@@ -1,0 +1,31 @@
+{
+  "components": [
+    {
+      "label": "Radio group",
+      "values": [
+        {
+          "label": "Accept the case",
+          "value": "true"
+        }
+      ],
+      "type": "radio",
+      "layout": {
+        "row": "Row_024al4c",
+        "columns": null
+      },
+      "id": "Field_0czsr4z",
+      "key": "caseAccepted",
+      "defaultValue": "value",
+      "description": "This case needs to accepted"
+    }
+  ],
+  "type": "default",
+  "id": "accept-case",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}
