@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.0",
+    "@types/uuid": "^10.0.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },
@@ -23,6 +24,7 @@
     "@camunda8/sdk": "^8.8.0",
     "express": "^5.1.0",
     "mysql2": "^3.15.3",
+    "uuid": "^13.0.0",
     "zeebe-node": "^8.3.2"
   }
 }

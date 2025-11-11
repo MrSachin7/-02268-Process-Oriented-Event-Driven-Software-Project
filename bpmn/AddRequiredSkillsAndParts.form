@@ -1,0 +1,101 @@
+{
+  "components": [
+    {
+      "label": "Select required parts",
+      "values": [
+        {
+          "label": "Main shaft Bearing Set",
+          "value": "Main shaft Bearing Set"
+        },
+        {
+          "label": "Planetary Gear Set (Stage 1)",
+          "value": "Planetary Gear Set (Stage 1)"
+        },
+        {
+          "label": "Oil Filter Element (High Flow)",
+          "value": "Oil Filter Element (High Flow)"
+        },
+        {
+          "label": "Gearbox Seal Kit (Full)",
+          "value": "Gearbox Seal Kit (Full)"
+        },
+        {
+          "label": "Cooling System Pump Assembly",
+          "value": "Cooling System Pump Assembly"
+        },
+        {
+          "label": "Hydraulic Pitch Cylinder Actuator",
+          "value": "Hydraulic Pitch Cylinder Actuator"
+        },
+        {
+          "label": "Temperature Sensor (PT100) Replacement",
+          "value": "Temperature Sensor (PT100) Replacement"
+        },
+        {
+          "label": "Vibration Sensor (Accelerometer) Replacement",
+          "value": "Vibration Sensor (Accelerometer) Replacement"
+        }
+      ],
+      "type": "checklist",
+      "layout": {
+        "row": "Row_1t44rc5",
+        "columns": null
+      },
+      "id": "Field_0tyitt6",
+      "key": "requiredParts",
+      "description": "Please select all the required parts necessary to complete this maintainance",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Select specialist",
+      "values": [
+        {
+          "label": "Level 2 Gearbox Specialist",
+          "value": "Level 2 Gearbox Specialist"
+        },
+        {
+          "label": "Offshore Hydraulic Systems Engineer",
+          "value": "Offshore Hydraulic Systems Engineer"
+        },
+        {
+          "label": "High Voltage (HV) Electrical Technician",
+          "value": "High Voltage (HV) Electrical Technician"
+        },
+        {
+          "label": "Rope Access Certified Technician",
+          "value": "Rope Access Certified Technician"
+        },
+        {
+          "label": "Non-Destructive Testing (NDT) Inspector",
+          "value": "Non-Destructive Testing (NDT) Inspector"
+        },
+        {
+          "label": "Certified Weld Repair Specialist",
+          "value": "Certified Weld Repair Specialist"
+        }
+      ],
+      "type": "select",
+      "layout": {
+        "row": "Row_13j5ccd",
+        "columns": null
+      },
+      "id": "Field_1pe0ykl",
+      "key": "requiredSpecialistLevel",
+      "description": "Select a specialist level required to perform this maintainance",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "AddRequiredSkillsAndParts",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

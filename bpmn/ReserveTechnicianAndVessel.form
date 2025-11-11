@@ -1,0 +1,28 @@
+{
+  "components": [
+    {
+      "subtype": "date",
+      "dateLabel": "Date",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_0kz7ttl",
+        "columns": null
+      },
+      "id": "Field_05p49zc",
+      "key": "reservedDate",
+      "description": "The date you want to reserve the techncian and the vessel",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "ReserveTechnicianAndVessel",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

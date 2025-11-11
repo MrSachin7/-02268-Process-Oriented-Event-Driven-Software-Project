@@ -169,7 +169,7 @@
       <bpmn:incoming>Flow_1yg6ebh</bpmn:incoming>
       <bpmn:outgoing>Flow_0ggj7xm</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:endEvent id="Event_0bagbb2" name="OrderMaintainanceWork">
+    <bpmn:endEvent id="Event_0bagbb2" name="Generate Maintainance Work Order">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="order-maintainance-work" retries="3" />
       </bpmn:extensionElements>
@@ -242,7 +242,7 @@
       <bpmndi:BPMNShape id="Event_0bagbb2_di" bpmnElement="Event_0bagbb2">
         <dc:Bounds x="1612" y="592" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1589" y="635" width="82" height="27" />
+          <dc:Bounds x="1597" y="635" width="66" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0phxu4b_di" bpmnElement="Event_0phxu4b">
