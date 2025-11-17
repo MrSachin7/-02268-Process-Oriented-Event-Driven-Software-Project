@@ -1,0 +1,37 @@
+{
+  "components": [
+    {
+      "label": "Do you notice any long term bad trend ??",
+      "values": [
+        {
+          "label": "Yes, there is a long term trend",
+          "value": "true"
+        },
+        {
+          "label": "No, there is no long term trend here",
+          "value": "false"
+        }
+      ],
+      "type": "radio",
+      "layout": {
+        "row": "Row_1gcisr3",
+        "columns": null
+      },
+      "id": "Field_1imfk43",
+      "key": "longTermTrendValue",
+      "validate": {
+        "required": true
+      },
+      "defaultValue": "false"
+    }
+  ],
+  "type": "default",
+  "id": "LongTermTrend",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

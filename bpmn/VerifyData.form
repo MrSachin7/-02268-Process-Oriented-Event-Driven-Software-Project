@@ -1,0 +1,38 @@
+{
+  "components": [
+    {
+      "label": "Radio group",
+      "values": [
+        {
+          "label": "Yes, it was actually a failure",
+          "value": "true"
+        },
+        {
+          "label": "No, it was false positive",
+          "value": "false"
+        }
+      ],
+      "type": "radio",
+      "layout": {
+        "row": "Row_0ew1ctx",
+        "columns": null
+      },
+      "id": "Field_07w7tyi",
+      "key": "verifyData",
+      "description": "Was the data really bad or did the system made an error ?",
+      "defaultValue": "false",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "VerifyData",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

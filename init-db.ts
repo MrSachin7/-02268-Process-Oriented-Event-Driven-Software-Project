@@ -50,6 +50,43 @@ async function initDatabase() {
 
     console.log("✓ Inventory table created or already exists");
 
+    // Create the PurchaseOrders table if it doesn't exist
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS PurchaseOrders (
+        purchase_order_id VARCHAR(255) PRIMARY KEY,
+        turbine_id VARCHAR(255) NOT NULL,
+        parts_ordered TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (turbine_id) REFERENCES TurbinesTable(turbine_id)
+      )
+    `);
+
+    console.log("✓ PurchaseOrders table created or already exists");
+
+    // Create the ReportResults table if it doesn't exist
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS ReportResults (
+        report_id INT AUTO_INCREMENT PRIMARY KEY,
+        turbine_id VARCHAR(255) NOT NULL,
+        vib_min DECIMAL(10, 3),
+        vib_max DECIMAL(10, 3),
+        vib_avg DECIMAL(10, 3),
+        vib_count INT,
+        temp_min DECIMAL(10, 3),
+        temp_max DECIMAL(10, 3),
+        temp_avg DECIMAL(10, 3),
+        temp_count INT,
+        ttf_score INT,
+        has_failed BOOLEAN,
+        report_timestamp BIGINT,
+        created_at BIGINT,
+        FOREIGN KEY (turbine_id) REFERENCES TurbinesTable(turbine_id)
+      )
+    `);
+
+    console.log("✓ ReportResults table created or already exists");
+
     // Optional: Insert some sample data for testing
     await pool.execute(`
       INSERT IGNORE INTO TurbinesTable (turbine_id, status, last_updated)

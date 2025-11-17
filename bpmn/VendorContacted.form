@@ -1,0 +1,25 @@
+{
+  "components": [
+    {
+      "label": "I have contacted the primary vendor",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_10sjmtd",
+        "columns": null
+      },
+      "id": "Field_00p2nec",
+      "key": "checkbox_aq9uhj",
+      "defaultValue": true,
+      "description": "Only check this when the primary vendor has been contacted and they have agreed for a premium delivery"
+    }
+  ],
+  "type": "default",
+  "id": "VendorContacted",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

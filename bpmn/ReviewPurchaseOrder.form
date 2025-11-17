@@ -1,0 +1,34 @@
+{
+  "components": [
+    {
+      "label": "Pay for premium ?",
+      "values": [
+        {
+          "label": "Yes",
+          "value": "true"
+        },
+        {
+          "label": "No",
+          "value": "false"
+        }
+      ],
+      "type": "radio",
+      "layout": {
+        "row": "Row_1teuzy3",
+        "columns": null
+      },
+      "id": "Field_0koxwgm",
+      "key": "payForPremium",
+      "description": "The vendor has notified that this item is not in stock. If it is urgent, we can pay for premium so that this task is prioritized"
+    }
+  ],
+  "type": "default",
+  "id": "ReviewPurchaseOrder",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

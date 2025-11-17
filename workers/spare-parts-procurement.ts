@@ -12,10 +12,10 @@ zeebe.createWorker({
     console.log(`[Zeebe Worker] handling job of type ${job.type}`);
 
     const turbineID = job.variables.turbineID;
-    const unavailable = job.variables.unavailableItems as string[];
+    const missingItems = job.variables.unavailableItems as string[];
 
     console.log(`Triggering spare parts procurement for turbine: ${turbineID}`);
-    console.log(`Unavailable parts:`, unavailable);
+    console.log(`Unavailable parts:`, missingItems);
 
     try {
       // Publish event to Siddhi
@@ -27,10 +27,10 @@ zeebe.createWorker({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: "spare-part-procurement",
+            name: "part-procurement-received",
             variables: {
               turbineID: turbineID,
-              unavailableItems: unavailable,
+              unavailableItems: missingItems,
             },
           }),
         }

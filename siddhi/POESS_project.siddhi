@@ -1,37 +1,48 @@
-@App:name("POESS_Project")
-
-@App:description("Wind Turbine Monitoring - High Risk Alert CEP (No DB Version)")
+@App:name("WindTurbineMonitoring")
+@App:description("Daily Report + Alerts CEP")
 
 /*
 =========================================
-1. RAW INPUT STREAMS
+1. INPUT SENSOR STREAMS
 =========================================
 */
 
 @info(name='VibrationInputStream')
-@source(type='http', receiver.url='http://localhost:8081/streams/vibrations', 
-        @map(type='json', enclosing.element="$", fail.on.missing.attribute="false"))
-@sink(type='log', prefix='Vibration received')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/streams/vibrations',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
 define stream VibrationStream (
-    turbineID string, 
-    sensorID string, 
-    vibrationLevel double
+    turbineID string,
+    vibrationLevel double,
+    timestamp long
 );
 
+
 @info(name='TemperatureInputStream')
-@source(type='http', receiver.url='http://localhost:8081/streams/temperatures', 
-        @map(type='json', enclosing.element="$", fail.on.missing.attribute="false"))
-@sink(type='log', prefix='Temperature received')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/streams/temperatures',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
 define stream TemperatureStream (
-    turbineID string, 
-    sensorID string, 
-    currentTemp double
+    turbineID string,
+    currentTemp double,
+    timestamp long
 );
+
+
+/*
+=========================================
+2. ACTION STREAMS
+=========================================
+*/
 
 @info(name='ChangeTurbineStatusStream')
 @source(
     type='http',
-    receiver.url='http://localhost:8081/actions/change-turbine-status', 
+    receiver.url='http://localhost:8081/actions/change-turbine-status',
     @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
 )
 @sink(type='log', prefix='Change turbine status event')
@@ -48,91 +59,91 @@ define stream TemperatureStream (
 """))
 )
 define stream ChangeTurbineStatusStream (
-    turbineID string, 
+    turbineID string,
     status string
 );
 
-
-/*
-=========================================
-2. DATA STORE (RDBMS TABLE) — COMMENTED OUT
-=========================================
-*/
-
-/*
-@Store(
-    type="rdbms",
-    jdbc.url="jdbc:mysql://localhost:3306/siddhi_db",
-    username="siddhi_user",
-    password="siddhi_pass",
-    jdbc.driver.name="com.mysql.cj.jdbc.Driver"
+@info(name='ChangeTurbineMaintainanceStatusStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/actions/change-turbine-maintainance-status',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
 )
-@PrimaryKey("turbine_id")
-define table TurbinesTable (
-    turbine_id string,
-    status string,
-    last_updated long
+@sink(type='log', prefix='Change turbine maintainance status event')
+@sink(
+    type='http',
+    publisher.url='http://localhost:3000/api/change-turbine-maintainance-status',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+    "turbineID": "{{turbineID}}",
+    "maintainanceStatus": "{{maintainanceStatus}}"
+}
+"""))
+)
+define stream ChangeTurbineMaintainanceStream (
+    turbineID string,
+    maintainanceStatus string
 );
-*/
+
+@info(name='GenerateDailyReportActionStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/actions/generate-daily-report',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
+define stream GenerateDailyReportActionStream (
+    instanceID string
+);
+
 
 /*
 =========================================
-3. INTERMEDIATE STREAMS
+3. INTERMEDIATE / INTERNAL STREAMS
 =========================================
 */
 
-@sink(type='log', prefix='HIGH_VIBRATION')
-define stream HighVibrationStream (
-    turbineID string, 
-    avgVibration double
+define stream DailyVibrationStatsInternal (
+    instanceID string,
+    turbineID string,
+    vibMin double,
+    vibMax double,
+    vibAvg double,
+    vibCount long
 );
 
-@sink(type='log', prefix='TEMP_WINDOWED')
-define stream TemperatureWindowedStream (
+define stream DailyTemperatureStatsInternal (
+    instanceID string,
     turbineID string,
-    avgCurrentTemp double
+    tempMin double,
+    tempMax double,
+    tempAvg double,
+    tempCount long
 );
 
-@sink(type='log', prefix='PREV_TEMP')
-define stream PreviousTempStream (
+define stream CombinedTurbineStatsInternal (
+    instanceID string,
     turbineID string,
-    avgPreviousTemp double
+    vibMin double,
+    vibMax double,
+    vibAvg double,
+    vibCount long,
+    tempMin double,
+    tempMax double,
+    tempAvg double,
+    tempCount long
 );
 
-@sink(type='log', prefix='RISING_TEMP')
-define stream RisingTemperatureStream (
-    turbineID string,
-    avgCurrentTemp double,
-    avgPreviousTemp double
-);
 
-@sink(type='log', prefix='HV_RT_JOINED')
-define stream HV_RT_JoinedStream (
-    turbineID string,
-    avgVibration double,
-    avgCurrentTemp double,
-    avgPreviousTemp double
-);
-
-@sink(type='log', prefix='TEMP_ALERT')
-define stream TempAlertStream (
-    turbineID string,
-    alertTimestamp long,
-    reason string,
-    avgVibration double,
-    tempMetric double,
-    avgPreviousTemp double,
-    turbineStatus string
-);
 
 /*
 =========================================
-4. OUTPUT ALERT STREAM
+4. OUTPUT STREAMS → CAMUNDA
 =========================================
 */
 
 @info(name='HighRiskAlertOutputStream')
-@sink(type='log', prefix='ALERT_FIRED')
 @sink(
     type='http',
     publisher.url='http://localhost:8088/v2/messages/publication',
@@ -143,114 +154,161 @@ define stream TempAlertStream (
   "name": "HighRiskAlert",
   "variables": {
     "turbineID": "{{turbineID}}",
-    "alertTimestamp": {{alertTimestamp}},
     "reason": "{{reason}}",
+    "alertTimestamp": {{alertTimestamp}},
     "avgVibration": {{avgVibration}},
     "tempMetric": {{tempMetric}}
   }
 }
 """))
 )
-define stream HighRiskAlertStream (
+define stream HighRiskAlertOutputStream (
     turbineID string,
-    alertTimestamp long,
     reason string,
+    alertTimestamp long,
     avgVibration double,
     tempMetric double
 );
 
+@info(name='DailyReportOutputStream')
+@sink(
+    type='http',
+    publisher.url='http://localhost:8088/v2/messages/correlation',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+  "name": "daily-report-received",
+  "correlationKey": "{{instanceID}}",
+  "variables": {
+    "turbineID": "{{turbineID}}",
+    "vibMin": {{vibMin}},
+    "vibMax": {{vibMax}},
+    "vibAvg": {{vibAvg}},
+    "vibCount": {{vibCount}},
+    "tempMin": {{tempMin}},
+    "tempMax": {{tempMax}},
+    "tempAvg": {{tempAvg}},
+    "tempCount": {{tempCount}},
+    "reportTimestamp": {{reportTimestamp}}
+  }
+}
+"""))
+)
+define stream DailyReportOutputStream (
+    instanceID string,
+    turbineID string,
+    vibMin double,
+    vibMax double,
+    vibAvg double,
+    vibCount long,
+    tempMin double,
+    tempMax double,
+    tempAvg double,
+    tempCount long,
+    reportTimestamp long
+);
+
+
 /*
 =========================================
-5. CEP QUERIES
+5. AGGREGATIONS (REAL METRICS)
 =========================================
 */
 
--- Query 1: Detect high vibration
-@info(name='Query1_Detect_High_Vibration')
-from VibrationStream#window.time(10 min)
-select turbineID, avg(vibrationLevel) as avgVibration
+define aggregation VibrationDailyAgg
+from VibrationStream
+select turbineID,
+       min(vibrationLevel) as vibMin,
+       max(vibrationLevel) as vibMax,
+       avg(vibrationLevel) as vibAvg,
+       count() as vibCount
 group by turbineID
-having avgVibration > 5.0
-insert into HighVibrationStream;
+aggregate by timestamp every day;
 
--- Query 2a: Compute 30-min windowed temperature average
-@info(name='Query2a_TemperatureWindowed')
-from TemperatureStream#window.time(30 min)
-select turbineID, avg(currentTemp) as avgCurrentTemp
+define aggregation TemperatureDailyAgg
+from TemperatureStream
+select turbineID,
+       min(currentTemp) as tempMin,
+       max(currentTemp) as tempMax, 
+       avg(currentTemp) as tempAvg,
+       count() as tempCount
 group by turbineID
-insert into TemperatureWindowedStream;
+aggregate by timestamp every day;
 
--- Query 2b: Compute previous 5-min average as snapshot
-@info(name='Query2b_PreviousTemp')
-from TemperatureWindowedStream#window.time(5 min)
-select turbineID, avg(avgCurrentTemp) as avgPreviousTemp
-group by turbineID
-insert into PreviousTempStream;
-
--- Query 2c: Detect rising temperature
-@info(name='Query2c_RisingTemp')
-from TemperatureWindowedStream as C
-join PreviousTempStream as P
-    on C.turbineID == P.turbineID 
-    and (C.avgCurrentTemp - P.avgPreviousTemp) > 2.0
-select C.turbineID, C.avgCurrentTemp, P.avgPreviousTemp
-insert into RisingTemperatureStream;
-
--- Query 3a: Join High Vibration + Rising Temp
-@info(name='Query3a_HV_RT_Join')
-from HighVibrationStream#window.time(2 min) as H
-join RisingTemperatureStream#window.time(2 min) as T
-    on H.turbineID == T.turbineID
-select H.turbineID, H.avgVibration, T.avgCurrentTemp, T.avgPreviousTemp
-insert into HV_RT_JoinedStream;
 
 /*
--- Query 3b: Join previous result with Turbine Table (COMMENTED OUT)
-@info(name='Query3b_Add_Turbine_Info')
-from HV_RT_JoinedStream as X
-join TurbinesTable as Turbine
-    on X.turbineID == Turbine.turbine_id
-select 
-    X.turbineID as turbineID,
-    time:timestampInMilliseconds() as alertTimestamp,
-    'Sustained high vibration AND significantly rising temperature detected.' as reason,
-    X.avgVibration as avgVibration,
-    X.avgCurrentTemp as tempMetric,
-    X.avgPreviousTemp as avgPreviousTemp,
-    Turbine.status as turbineStatus
-insert into TempAlertStream;
+=========================================
+6. QUERIES
+=========================================
 */
 
--- Temporary version without database join
-@info(name='Query3b_NoDB_Add_Turbine_Info')
-from HV_RT_JoinedStream
-select 
-    turbineID,
-    time:timestampInMilliseconds() as alertTimestamp,
-    'Sustained high vibration AND significantly rising temperature detected.' as reason,
-    avgVibration,
-    avgCurrentTemp as tempMetric,
-    avgPreviousTemp,
-    'Unknown' as turbineStatus
-insert into TempAlertStream;
+-- Query to retrieve vibration stats for ALL turbines
+@info(name='Query_Vibration_Daily')
+from GenerateDailyReportActionStream as A
+    join VibrationDailyAgg as V
+within "2024-01-01 00:00:00", "2099-12-31 23:59:59"
+per "days"
+select A.instanceID,
+       V.turbineID,
+       V.vibMin,
+       V.vibMax,
+       V.vibAvg,
+       V.vibCount
+insert into DailyVibrationStatsInternal;
 
--- Query 4: Filter high-risk alerts
-@info(name='Query4_Filter_HighRisk')
-from TempAlertStream[
-    (turbineStatus == 'Elevated' and avgVibration > 4.0 and (tempMetric - avgPreviousTemp) > 1.5)
-    or
-    (turbineStatus != 'Elevated' and avgVibration > 5.0 and (tempMetric - avgPreviousTemp) > 2.0)
-]
-select turbineID, alertTimestamp, reason, avgVibration, tempMetric
-insert into HighRiskAlertStream;
+-- Query to retrieve temperature stats for ALL turbines
+@info(name='Query_Temperature_Daily')
+from GenerateDailyReportActionStream as A
+    join TemperatureDailyAgg as T
+within "2024-01-01 00:00:00", "2099-12-31 23:59:59"
+per "days"
+select A.instanceID,
+       T.turbineID,
+       T.tempMin,
+       T.tempMax,
+       T.tempAvg,
+       T.tempCount
+insert into DailyTemperatureStatsInternal;
 
-/*
--- Query 5: Update Turbine Status (COMMENTED OUT)
-@info(name='Query_Update_Turbine_Status')
-from ChangeTurbineStatusStream
-select turbineID as turbine_id,
-       status,
-       time:timestampInMilliseconds() as last_updated
-update or insert into TurbinesTable
-   on TurbinesTable.turbine_id == turbine_id;
-*/
+-- Combine vibration and temperature stats to generate daily report for each turbine
+@info(name='Query_Combine_Daily_Report')
+from DailyVibrationStatsInternal as V
+    join DailyTemperatureStatsInternal as T
+    on V.instanceID == T.instanceID and V.turbineID == T.turbineID
+select V.instanceID,
+       V.turbineID,
+       V.vibMin,
+       V.vibMax,
+       V.vibAvg,
+       V.vibCount,
+       T.tempMin,
+       T.tempMax,
+       T.tempAvg,
+       T.tempCount,
+       eventTimestamp() as reportTimestamp
+insert into DailyReportOutputStream;
+
+-- High risk alert: High vibration (rolling window)
+@info(name='Query_HighVibration_Alert')
+from VibrationStream#window.timeBatch(2 sec)
+select turbineID,
+       'High vibration detected' as reason,
+       eventTimestamp() as alertTimestamp,
+       avg(vibrationLevel) as avgVibration,
+       0.0 as tempMetric
+group by turbineID
+having avgVibration > 8.0
+insert into HighRiskAlertOutputStream;
+
+-- High risk alert: High temperature (rolling window)
+@info(name='Query_HighTemperature_Alert')
+from TemperatureStream#window.timeBatch(2 sec)
+select turbineID,
+       'High temperature detected' as reason,
+       eventTimestamp() as alertTimestamp,
+       0.0 as avgVibration,
+       avg(currentTemp) as tempMetric
+group by turbineID
+having tempMetric > 85.0
+insert into HighRiskAlertOutputStream;

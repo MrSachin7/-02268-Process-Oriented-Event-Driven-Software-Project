@@ -6,6 +6,11 @@ import "./workers/create-draft-work-order.js";
 import "./workers/order-maintainance-work.js";
 import "./workers/check-parts-in-inventory.js";
 import "./workers/spare-parts-procurement.js";
+import "./workers/generate-purchase-order.js";
+import "./workers/spare-parts-acquired.js";
+import "./workers/data-quality-check.js";
+import "./workers/calculate-ttf.js";
+import "./workers/save-report-result.js";
 import { changeTurbineStatusRouter } from "./endpoints/change-turbine-status.js";
 import { changeTurbineMaintainanceStatusRouter } from "./endpoints/change-turbine-maintainance-stream.js";
 
