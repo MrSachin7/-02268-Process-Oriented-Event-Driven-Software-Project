@@ -172,6 +172,9 @@
     <bpmn:endEvent id="Event_0bagbb2" name="Generate Maintainance Work Order">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="order-maintainance-work" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=&#34;normal&#34;" target="priority" />
+        </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0u3e5xm</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0ehjysq" />

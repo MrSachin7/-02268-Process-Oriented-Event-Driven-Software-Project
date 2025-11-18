@@ -1,0 +1,22 @@
+{
+  "components": [
+    {
+      "text": "# Click complete when you have dispatched the emergency queue.",
+      "type": "text",
+      "layout": {
+        "row": "Row_026uuv1",
+        "columns": null
+      },
+      "id": "Field_16yhwub"
+    }
+  ],
+  "type": "default",
+  "id": "DispatchEmergencyQueue",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.40.1"
+  },
+  "schemaVersion": 19
+}

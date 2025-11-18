@@ -6,6 +6,7 @@
     <bpmn:messageFlow id="Flow_0bwb2i8" sourceRef="Participant_0iwvarx" targetRef="Event_0n1rd5c" />
     <bpmn:messageFlow id="Flow_1rjldx5" sourceRef="Participant_0iwvarx" targetRef="Event_1mrjohx" />
     <bpmn:messageFlow id="Flow_0kvd38c" sourceRef="Activity_0kq44kw" targetRef="Participant_0iwvarx" />
+    <bpmn:messageFlow id="Flow_01cdg15" sourceRef="Participant_0iwvarx" targetRef="Event_00wg6m1" />
   </bpmn:collaboration>
   <bpmn:process id="Process_1hz45i3" isExecutable="true">
     <bpmn:laneSet id="LaneSet_094i841">
@@ -107,7 +108,7 @@
     <bpmn:sequenceFlow id="Flow_0a3s2st" sourceRef="Gateway_1xqrejb" targetRef="Gateway_16zxkfr" />
     <bpmn:sequenceFlow id="Flow_0ypuo58" sourceRef="Gateway_16zxkfr" targetRef="Event_00wg6m1" />
     <bpmn:sequenceFlow id="Flow_0ip88xq" sourceRef="Event_00wg6m1" targetRef="Event_1iksl5s" />
-    <bpmn:intermediateCatchEvent id="Event_1mrjohx" name="Back ordered">
+    <bpmn:intermediateCatchEvent id="Event_1mrjohx" name="Order confirmed but will be late">
       <bpmn:incoming>Flow_1qdqen5</bpmn:incoming>
       <bpmn:outgoing>Flow_1pn3gnh</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0dgpbdr" messageRef="Message_1tjcd2f" />
@@ -190,7 +191,7 @@
       <bpmndi:BPMNShape id="Event_1mrjohx_di" bpmnElement="Event_1mrjohx">
         <dc:Bounds x="822" y="422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="868" y="433" width="66" height="14" />
+          <dc:Bounds x="861" y="433" width="80" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1xio62s_di" bpmnElement="Flow_1xio62s">
@@ -262,7 +263,7 @@
         <di:waypoint x="1452" y="370" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_1cb1t6v_di" bpmnElement="Participant_0iwvarx" isHorizontal="true">
-        <dc:Bounds x="380" y="60" width="660" height="60" />
+        <dc:Bounds x="160" y="60" width="1388" height="60" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0bwb2i8_di" bpmnElement="Flow_0bwb2i8">
@@ -276,6 +277,10 @@
       <bpmndi:BPMNEdge id="Flow_0kvd38c_di" bpmnElement="Flow_0kvd38c">
         <di:waypoint x="440" y="330" />
         <di:waypoint x="440" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01cdg15_di" bpmnElement="Flow_01cdg15">
+        <di:waypoint x="1320" y="120" />
+        <di:waypoint x="1320" y="352" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

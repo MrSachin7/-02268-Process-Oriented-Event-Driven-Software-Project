@@ -11,6 +11,10 @@ import "./workers/spare-parts-acquired.js";
 import "./workers/data-quality-check.js";
 import "./workers/calculate-ttf.js";
 import "./workers/save-report-result.js";
+import "./workers/fetch-current-windspeed.js";
+import "./workers/send-high-priority-alarm.js";
+import "./workers/controlled-emergency-decceleration.js";
+import "./workers/immediate-hard-shutdown.js";
 import { changeTurbineStatusRouter } from "./endpoints/change-turbine-status.js";
 import { changeTurbineMaintainanceStatusRouter } from "./endpoints/change-turbine-maintainance-stream.js";
 
