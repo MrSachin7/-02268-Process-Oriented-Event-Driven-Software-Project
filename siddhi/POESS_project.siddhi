@@ -170,6 +170,30 @@ define stream HighRiskAlertOutputStream (
     tempMetric double
 );
 
+@info(name='DCRHighRiskAlertOutputStream')
+@sink(
+    type='http',
+    publisher.url='http://localhost:3000/api/dcr/start-high-risk-alert',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+  "turbineID": "{{turbineID}}",
+  "reason": "{{reason}}",
+  "alertTimestamp": {{alertTimestamp}},
+  "avgVibration": {{avgVibration}},
+  "tempMetric": {{tempMetric}}
+}
+"""))
+)
+define stream DCRHighRiskAlertOutputStream (
+    turbineID string,
+    reason string,
+    alertTimestamp long,
+    avgVibration double,
+    tempMetric double
+);
+
 @info(name='DailyReportOutputStream')
 @sink(
     type='http',
@@ -300,6 +324,18 @@ select turbineID,
 group by turbineID
 having avgVibration > 8.0
 insert into HighRiskAlertOutputStream;
+
+-- Route vibration alerts to DCR (declarative workflow)
+@info(name='Query_HighVibration_DCR')
+from VibrationStream#window.timeBatch(2 sec)
+select turbineID,
+       'High vibration detected' as reason,
+       eventTimestamp() as alertTimestamp,
+       avg(vibrationLevel) as avgVibration,
+       0.0 as tempMetric
+group by turbineID
+having avgVibration > 8.0
+insert into DCRHighRiskAlertOutputStream;
 
 -- High risk alert: High temperature (rolling window)
 @info(name='Query_HighTemperature_Alert')

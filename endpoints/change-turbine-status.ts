@@ -20,7 +20,6 @@ changeTurbineStatusRouter.post(
     console.log(`Status: ${status}`);
 
     try {
-      // Insert or update the turbine status in the database
       const [result] = await pool.execute(
         `INSERT INTO TurbinesTable (turbine_id, status, last_updated) 
          VALUES (?, ?, NOW())
