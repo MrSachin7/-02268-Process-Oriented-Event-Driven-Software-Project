@@ -113,6 +113,36 @@ async function initDatabase() {
     `);
 
     console.log("✓ Inventory parts populated (if not already present)");
+
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS DCRInstances (
+        instance_id VARCHAR(255) PRIMARY KEY,
+        process_type VARCHAR(100) NOT NULL,
+        turbine_id VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (turbine_id) REFERENCES TurbinesTable(turbine_id)
+      )
+    `);
+
+    console.log("✓ DCRInstances table created or already exists");
+
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS DCREventStates (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        instance_id VARCHAR(255) NOT NULL,
+        event_id VARCHAR(50) NOT NULL,
+        event_name VARCHAR(255) NOT NULL,
+        included BOOLEAN NOT NULL,
+        executed BOOLEAN NOT NULL,
+        pending BOOLEAN NOT NULL,
+        enabled BOOLEAN NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (instance_id) REFERENCES DCRInstances(instance_id) ON DELETE CASCADE,
+        UNIQUE KEY unique_instance_event (instance_id, event_id)
+      )
+    `);
+
+    console.log("✓ DCREventStates table created or already exists");
   } catch (error) {
     console.error("Error initializing database:", error);
   }

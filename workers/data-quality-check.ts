@@ -35,91 +35,60 @@ zeebe.createWorker({
     const issues: string[] = [];
 
     try {
-      // Check 1: Insufficient data points
       if (vibCount < 5 || tempCount < 5) {
-        issues.push(
-          "Insufficient data points (minimum 5 required for each metric)"
-        );
+        issues.push("Insufficient data points (minimum 5 required)");
         hasFailed = true;
       }
 
-      // Check 2: Invalid value ranges (min should be <= avg <= max)
       if (vibMin > vibAvg || vibAvg > vibMax) {
-        issues.push("Invalid vibration data range (min > avg or avg > max)");
+        issues.push("Invalid vibration data range");
         hasFailed = true;
       }
 
       if (tempMin > tempAvg || tempAvg > tempMax) {
-        issues.push("Invalid temperature data range (min > avg or avg > max)");
+        issues.push("Invalid temperature data range");
         hasFailed = true;
       }
 
-      // Check 3: Unrealistic vibration range spread
-      // If the range is too large (>50% of average), data might be unreliable
       const vibRange = vibMax - vibMin;
       if (vibAvg > 0 && vibRange / vibAvg > 0.5) {
-        issues.push(
-          `Excessive vibration variance detected (range: ${vibRange.toFixed(
-            2
-          )}, avg: ${vibAvg.toFixed(2)})`
-        );
+        issues.push(`Excessive vibration variance (range: ${vibRange.toFixed(2)}, avg: ${vibAvg.toFixed(2)})`);
         hasFailed = true;
       }
 
-      // Check 4: Unrealistic temperature range spread
-      // Temperature shouldn't vary more than 30% from average
       const tempRange = tempMax - tempMin;
       if (tempAvg > 0 && tempRange / tempAvg > 0.3) {
-        issues.push(
-          `Excessive temperature variance detected (range: ${tempRange.toFixed(
-            2
-          )}, avg: ${tempAvg.toFixed(2)})`
-        );
+        issues.push(`Excessive temperature variance (range: ${tempRange.toFixed(2)}, avg: ${tempAvg.toFixed(2)})`);
         hasFailed = true;
       }
 
-      // Check 5: Physically impossible values
       if (vibMin < 0 || vibMax < 0 || vibAvg < 0) {
-        issues.push(
-          "Negative vibration values detected (physically impossible)"
-        );
+        issues.push("Negative vibration values detected");
         hasFailed = true;
       }
 
       if (tempMin < -50 || tempMax > 150) {
-        issues.push(
-          "Temperature values outside operational range (-50°C to 150°C)"
-        );
+        issues.push("Temperature outside operational range (-50°C to 150°C)");
         hasFailed = true;
       }
 
-      // Check 6: Suspiciously constant values (no variance might indicate sensor failure)
       if (vibMin === vibMax && vibCount > 10) {
-        issues.push(
-          "Zero vibration variance detected (possible sensor failure)"
-        );
+        issues.push("Zero vibration variance (possible sensor failure)");
         hasFailed = true;
       }
 
       if (tempMin === tempMax && tempCount > 10) {
-        issues.push(
-          "Zero temperature variance detected (possible sensor failure)"
-        );
+        issues.push("Zero temperature variance (possible sensor failure)");
         hasFailed = true;
       }
 
-      // Check 7: Average not between min and max (data consistency check)
       if (vibAvg < vibMin - 0.01 || vibAvg > vibMax + 0.01) {
-        issues.push(
-          "Vibration average outside min-max range (data inconsistency)"
-        );
+        issues.push("Vibration average outside min-max range");
         hasFailed = true;
       }
-      
+
       if (tempAvg < tempMin - 0.01 || tempAvg > tempMax + 0.01) {
-        issues.push(
-          "Temperature average outside min-max range (data inconsistency)"
-        );
+        issues.push("Temperature average outside min-max range");
         hasFailed = true;
       }
 
@@ -142,9 +111,8 @@ zeebe.createWorker({
       console.log("--------------------------");
 
       return job.fail({
-        errorMessage: `Failed to perform data quality check: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        errorMessage: `Failed to perform data quality check: ${error instanceof Error ? error.message : "Unknown error"
+          }`,
       });
     }
   },

@@ -1,4 +1,5 @@
 import { Camunda8 } from "@camunda8/sdk";
+import { pool } from "../db.js";
 
 const camunda = new Camunda8();
 const zeebe = camunda.getZeebeGrpcApiClient();
@@ -7,50 +8,26 @@ zeebe.createWorker({
   taskType: "send-high-priority-alarm",
 
   taskHandler: async (job) => {
-    const turbineID = job.variables.turbineID as string;
-    const ttfScore = job.variables.ttfScore;
+    console.log("--------------------------");
+    console.log(`[Zeebe Worker] handling job of type ${job.type}`);
 
-    console.log("\n");
-    console.log(
-      "╔═══════════════════════════════════════════════════════════════╗"
-    );
-    console.log(
-      "║                                                               ║"
-    );
-    console.log(
-      "║   🚨🚨🚨  HIGH PRIORITY ALARM  🚨🚨🚨                          ║"
-    );
-    console.log(
-      "║                                                               ║"
-    );
-    console.log(
-      "║   ⚠️  CRITICAL TURBINE FAILURE PREDICTION DETECTED  ⚠️        ║"
-    );
-    console.log(
-      "║                                                               ║"
-    );
-    console.log(
-      "╠═══════════════════════════════════════════════════════════════╣"
-    );
-    console.log(`║   Turbine ID: ${turbineID}`.padEnd(64) + "║");
-    console.log(`║   TTF Score: ${ttfScore}`.padEnd(64) + "║");
-    console.log(
-      "║                                                               ║"
-    );
-    console.log(
-      "║   IMMEDIATE ACTION REQUIRED!                                  ║"
-    );
-    console.log(
-      "║   Maintenance work must be scheduled urgently.                ║"
-    );
-    console.log(
-      "║                                                               ║"
-    );
-    console.log(
-      "╚═══════════════════════════════════════════════════════════════╝"
-    );
-    console.log("\n");
+    const turbineID = job.variables.turbineID;
+    console.log(`Sending high-priority alarm for turbine: ${turbineID}`);
 
+    try {
+      await pool.execute(
+        `INSERT INTO TurbinesTable (turbine_id, status, last_updated) 
+         VALUES (?, 'High Priority Alert', NOW())
+         ON DUPLICATE KEY UPDATE status = 'High Priority Alert', last_updated = NOW()`,
+        [turbineID]
+      );
+
+      console.log(`✓ High-priority alarm sent for turbine ${turbineID}`);
+    } catch (error) {
+      console.error("Error sending high-priority alarm:", error);
+    }
+
+    console.log("--------------------------");
     return job.complete();
   },
 });
