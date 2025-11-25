@@ -1,42 +1,62 @@
 import type { DCRGraph, Relation } from "./engine.js";
 
+// DCR Graph for On-Site Maintenance Scheduling & Execution (T1-T11)
 export function createMaintenanceSchedulingDCR(): DCRGraph {
     const events = new Map([
-        ['E1', { id: 'E1', name: 'Receive_Work_Order', included: true, executed: false, pending: false, enabled: true }],
-        ['E2', { id: 'E2', name: 'Draft_Work_Order', included: true, executed: false, pending: false, enabled: false }],
-        ['E3', { id: 'E3', name: 'Add_Required_Parts_Skills', included: true, executed: false, pending: false, enabled: false }],
-        ['E4', { id: 'E4', name: 'Check_Parts_Inventory', included: true, executed: false, pending: false, enabled: false }],
-        ['E5', { id: 'E5', name: 'Procure_Missing_Parts', included: false, executed: false, pending: false, enabled: false }],
-        ['E6', { id: 'E6', name: 'Reserve_Technician', included: true, executed: false, pending: false, enabled: false }],
-        ['E7', { id: 'E7', name: 'Reserve_Vessel', included: true, executed: false, pending: false, enabled: false }],
-        ['E8', { id: 'E8', name: 'Schedule_Maintenance', included: false, executed: false, pending: false, enabled: false }],
-        ['E9', { id: 'E9', name: 'Complete_Scheduling', included: true, executed: false, pending: false, enabled: false }],
+        // T1: Entry point - triggered by BPMN
+        ['T1', { id: 'T1', name: 'Receive_Work_Order', included: true, executed: false, pending: false, enabled: true }],
+
+        // T2-T4: Initial safety and resource checks (parallel after T1)
+        ['T2', { id: 'T2', name: 'Review_PreDeployment_Safety', included: true, executed: false, pending: false, enabled: false }],
+        ['T3', { id: 'T3', name: 'Check_Resource_Availability', included: true, executed: false, pending: false, enabled: false }],
+        ['T4', { id: 'T4', name: 'Review_Weather_Grid_Risk', included: true, executed: false, pending: false, enabled: false }],
+
+        // T5: Critical decision point
+        ['T5', { id: 'T5', name: 'Secure_Final_GoNoGo', included: true, executed: false, pending: false, enabled: false }],
+
+        // T6-T7: Dispatch and signal (T6 can be excluded by T5 No-Go)
+        ['T6', { id: 'T6', name: 'Dispatch_Crew_Vessel', included: true, executed: false, pending: false, enabled: false }],
+        ['T7', { id: 'T7', name: 'Send_Offline_Signal_CEP', included: true, executed: false, pending: false, enabled: false }],
+
+        // T8-T9: On-site execution
+        ['T8', { id: 'T8', name: 'Execute_Safety_Lockout', included: true, executed: false, pending: false, enabled: false }],
+        ['T9', { id: 'T9', name: 'Execute_OnSite_Repair', included: true, executed: false, pending: false, enabled: false }],
+
+        // T10-T11: Completion
+        ['T10', { id: 'T10', name: 'Turbine_Test_Run', included: true, executed: false, pending: false, enabled: false }],
+        ['T11', { id: 'T11', name: 'Close_Work_Order', included: true, executed: false, pending: false, enabled: false }],
     ]);
 
     const relations: Relation[] = [
-        // Initial flow
-        { from: 'E1', to: 'E2', type: 'response' },
-        { from: 'E2', to: 'E3', type: 'response' },
+        // CONDITION: T1 enables initial checks
+        { from: 'T1', to: 'T2', type: 'condition' },
+        { from: 'T1', to: 'T3', type: 'condition' },
+        { from: 'T1', to: 'T4', type: 'condition' },
 
-        // After adding parts/skills, check inventory (parallel start)
-        { from: 'E3', to: 'E4', type: 'response' },
-        { from: 'E3', to: 'E6', type: 'response' },
-        { from: 'E3', to: 'E7', type: 'response' },
+        // CONDITION: T4 (data review) must complete before Go/No-Go decision
+        { from: 'T4', to: 'T5', type: 'condition' },
 
-        // If parts missing, include procurement
-        { from: 'E4', to: 'E5', type: 'include' },
+        // RESPONSE: T5 decision leads to dispatch (if Go)
+        { from: 'T5', to: 'T6', type: 'response' },
 
-        // Procurement blocks scheduling until parts available
-        { from: 'E5', to: 'E8', type: 'milestone' },
+        // MILESTONE: T6 (dispatch) obligates T7 (offline signal)
+        { from: 'T6', to: 'T7', type: 'milestone' },
 
-        // All resources must be ready to schedule
-        { from: 'E6', to: 'E8', type: 'condition' },
-        { from: 'E7', to: 'E8', type: 'condition' },
-        { from: 'E4', to: 'E8', type: 'condition' },
+        // RESPONSE: After dispatch, crew goes to site
+        { from: 'T6', to: 'T8', type: 'response' },
 
-        // After scheduling completes, include completion event
-        { from: 'E8', to: 'E9', type: 'include' },
-        { from: 'E8', to: 'E9', type: 'response' },
+        // CONDITION: T8 (lockout) must complete before repair
+        { from: 'T8', to: 'T9', type: 'condition' },
+
+        // RESPONSE: T9 (repair) requires test run next
+        { from: 'T9', to: 'T10', type: 'response' },
+
+        // RESPONSE: T10 (test) requires work order closure
+        { from: 'T10', to: 'T11', type: 'response' },
+
+        // EXCLUSION: If T5 No-Go, T6 dispatch is excluded (handled via side effect)
+        // EXCLUSION: T7 offline signal excludes T10 until signal reverted (simplified for demo)
+        { from: 'T7', to: 'T10', type: 'exclude' },
     ];
 
     return { events, relations };

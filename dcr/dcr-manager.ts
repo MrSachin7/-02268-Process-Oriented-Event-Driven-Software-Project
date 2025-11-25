@@ -149,45 +149,88 @@ async function handleEventSideEffects(
             console.log(`  → Updated turbine ${turbineID} status to 'Elevated'`);
             break;
 
-        // Maintenance Scheduling process side effects  
-        case 'E2': // Draft_Work_Order
+        // Maintenance Scheduling process side effects (T1-T11)
+        case 'T1': // Receive Work Order
             await pool.execute(
                 `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
-         VALUES (?, 'Draft created', NOW())
-         ON DUPLICATE KEY UPDATE maintainance_status = 'Draft created', last_updated = NOW()`,
+         VALUES (?, 'WO Received', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'WO Received', last_updated = NOW()`,
                 [turbineID]
             );
-            console.log(`  → Created work order draft for turbine ${turbineID}`);
+            console.log(`  → Work Order received for turbine ${turbineID}`);
             break;
 
-        case 'E5': // Procure_Missing_Parts
-            await pool.execute(
-                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
-         VALUES (?, 'Awaiting parts', NOW())
-         ON DUPLICATE KEY UPDATE maintainance_status = 'Awaiting parts', last_updated = NOW()`,
-                [turbineID]
-            );
-            console.log(`  → turbine ${turbineID} waiting for spare parts`);
+        case 'T2': // Review Pre-Deployment Safety
+            console.log(`  → Safety review completed for turbine ${turbineID}`);
             break;
 
-        case 'E8': // Schedule_Maintenance
-            await pool.execute(
-                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
-         VALUES (?, 'Scheduled', NOW())
-         ON DUPLICATE KEY UPDATE maintainance_status = 'Scheduled', last_updated = NOW()`,
-                [turbineID]
-            );
-            console.log(`  → Maintenance scheduled for turbine ${turbineID}`);
+        case 'T4': // Review Weather/Grid Risk
+            console.log(`  → Weather/Grid risk data reviewed for turbine ${turbineID}`);
             break;
 
-        case 'E9': // Complete_Scheduling
+        case 'T5': // Secure Final Go/No-Go
+            const decision = data?.decision || 'Go';
             await pool.execute(
                 `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
-         VALUES (?, 'Ready for execution', NOW())
-         ON DUPLICATE KEY UPDATE maintainance_status = 'Ready for execution', last_updated = NOW()`,
+         VALUES (?, ?, NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = ?, last_updated = NOW()`,
+                [turbineID, `Decision: ${decision}`, `Decision: ${decision}`]
+            );
+            console.log(`  → Go/No-Go decision: ${decision} for turbine ${turbineID}`);
+            break;
+
+        case 'T6': // Dispatch Crew and Vessel
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Crew Dispatched', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Crew Dispatched', last_updated = NOW()`,
                 [turbineID]
             );
-            console.log(`  → Turbine ${turbineID} ready for maintenance execution`);
+            console.log(`  → Crew and vessel dispatched for turbine ${turbineID}`);
+            break;
+
+        case 'T7': // Send Offline Signal to CEP
+            console.log(`  → ⚠️ OFFLINE SIGNAL sent to CEP for turbine ${turbineID} (alerts suppressed)`);
+            break;
+
+        case 'T8': // Execute Safety Lockout
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Safety Lockout Active', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Safety Lockout Active', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → Safety lockout executed for turbine ${turbineID}`);
+            break;
+
+        case 'T9': // Execute On-Site Repair
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Repair In Progress', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Repair In Progress', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → On-site repair in progress for turbine ${turbineID}`);
+            break;
+
+        case 'T10': // Turbine Test Run
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Test Run Complete', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Test Run Complete', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → Test run completed for turbine ${turbineID}`);
+            break;
+
+        case 'T11': // Close Work Order
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, status, last_updated) 
+         VALUES (?, 'WO Closed', 'Normal', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'WO Closed', status = 'Normal', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → ✅ Work Order closed, turbine ${turbineID} back to normal operation`);
             break;
     }
 }
