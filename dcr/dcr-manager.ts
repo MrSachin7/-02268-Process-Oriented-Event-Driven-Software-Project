@@ -152,8 +152,8 @@ async function handleEventSideEffects(
         // Maintenance Scheduling process side effects (T1-T11)
         case 'T1': // Receive Work Order
             await pool.execute(
-                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
-         VALUES (?, 'WO Received', NOW())
+                `INSERT INTO TurbinesTable (turbine_id, status, maintainance_status, last_updated) 
+         VALUES (?, 'Normal', 'WO Received', NOW())
          ON DUPLICATE KEY UPDATE maintainance_status = 'WO Received', last_updated = NOW()`,
                 [turbineID]
             );

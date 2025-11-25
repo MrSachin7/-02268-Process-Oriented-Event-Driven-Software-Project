@@ -28,10 +28,10 @@ export function createMaintenanceSchedulingDCR(): DCRGraph {
     ]);
 
     const relations: Relation[] = [
-        // CONDITION: T1 enables initial checks
-        { from: 'T1', to: 'T2', type: 'condition' },
-        { from: 'T1', to: 'T3', type: 'condition' },
-        { from: 'T1', to: 'T4', type: 'condition' },
+        // T1 enables and makes pending the initial checks
+        { from: 'T1', to: 'T2', type: 'response' },
+        { from: 'T1', to: 'T3', type: 'response' },
+        { from: 'T1', to: 'T4', type: 'response' },
 
         // CONDITION: T4 (data review) must complete before Go/No-Go decision
         { from: 'T4', to: 'T5', type: 'condition' },

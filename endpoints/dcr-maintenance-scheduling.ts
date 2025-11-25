@@ -36,7 +36,7 @@ dcrMaintenanceSchedulingRouter.post(
                 timestamp,
             });
 
-            await executeDCREvent(instanceId, "E1", { workOrderReason, timestamp });
+            await executeDCREvent(instanceId, "T1", { workOrderReason, timestamp });
 
             const enabledEvents = getEnabledEvents(instanceId);
 
