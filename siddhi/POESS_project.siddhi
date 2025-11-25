@@ -194,6 +194,33 @@ define stream DCRHighRiskAlertOutputStream (
     tempMetric double
 );
 
+@info(name='EmergencyCatastropheAlertOutputStream')
+@sink(
+    type='http',
+    publisher.url='http://localhost:8088/v2/messages/publication',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+  "name": "EmergencyCatastropheAlert",
+  "variables": {
+    "turbineID": "{{turbineID}}",
+    "reason": "{{reason}}",
+    "alertTimestamp": {{alertTimestamp}},
+    "avgVibration": {{avgVibration}},
+    "tempMetric": {{tempMetric}}
+  }
+}
+"""))
+)
+define stream EmergencyCatastropheAlertOutputStream (
+    turbineID string,
+    reason string,
+    alertTimestamp long,
+    avgVibration double,
+    tempMetric double
+);
+
 @info(name='DailyReportOutputStream')
 @sink(
     type='http',
@@ -348,3 +375,27 @@ select turbineID,
 group by turbineID
 having tempMetric > 85.0
 insert into HighRiskAlertOutputStream;
+
+-- Emergency catastrophe alert: Extreme vibration (critical levels)
+@info(name='Query_EmergencyVibration_Alert')
+from VibrationStream#window.timeBatch(2 sec)
+select turbineID,
+       'CATASTROPHIC vibration detected - EMERGENCY SHUTDOWN REQUIRED' as reason,
+       eventTimestamp() as alertTimestamp,
+       avg(vibrationLevel) as avgVibration,
+       0.0 as tempMetric
+group by turbineID
+having avgVibration > 15.0
+insert into EmergencyCatastropheAlertOutputStream;
+
+-- Emergency catastrophe alert: Extreme temperature (critical levels)
+@info(name='Query_EmergencyTemperature_Alert')
+from TemperatureStream#window.timeBatch(2 sec)
+select turbineID,
+       'CATASTROPHIC temperature detected - EMERGENCY SHUTDOWN REQUIRED' as reason,
+       eventTimestamp() as alertTimestamp,
+       0.0 as avgVibration,
+       avg(currentTemp) as tempMetric
+group by turbineID
+having tempMetric > 120.0
+insert into EmergencyCatastropheAlertOutputStream;

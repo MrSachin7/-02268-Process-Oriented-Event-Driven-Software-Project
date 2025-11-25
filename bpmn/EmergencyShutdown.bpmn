@@ -26,7 +26,7 @@
     </bpmn:laneSet>
     <bpmn:startEvent id="Event_10pgqkd" name="Vib/Temp Catastrophe">
       <bpmn:outgoing>Flow_0spbga0</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_14pos15" />
+      <bpmn:messageEventDefinition id="MessageEventDefinition_14pos15" messageRef="Message_2ockvu7" />
     </bpmn:startEvent>
     <bpmn:parallelGateway id="Gateway_07ajdk7">
       <bpmn:incoming>Flow_0spbga0</bpmn:incoming>
@@ -116,16 +116,17 @@
       <bpmn:outgoing>Flow_0uwbqee</bpmn:outgoing>
     </bpmn:userTask>
   </bpmn:process>
+  <bpmn:message id="Message_2ockvu7" name="EmergencyCatastropheAlert" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_010e8i8">
       <bpmndi:BPMNShape id="Participant_0xtuyvb_di" bpmnElement="Participant_0xtuyvb" isHorizontal="true">
         <dc:Bounds x="180" y="220" width="1960" height="680" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_0fzbi5q_di" bpmnElement="Lane_0fzbi5q" isHorizontal="true">
-        <dc:Bounds x="210" y="220" width="1930" height="390" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_1tiveqv_di" bpmnElement="Lane_1tiveqv" isHorizontal="true">
         <dc:Bounds x="210" y="610" width="1930" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0fzbi5q_di" bpmnElement="Lane_0fzbi5q" isHorizontal="true">
+        <dc:Bounds x="210" y="220" width="1930" height="390" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_10pgqkd_di" bpmnElement="Event_10pgqkd">
         <dc:Bounds x="252" y="402" width="36" height="36" />
