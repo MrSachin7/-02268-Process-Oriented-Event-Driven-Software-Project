@@ -18,6 +18,7 @@ import "./workers/immediate-hard-shutdown.js";
 import { changeTurbineStatusRouter } from "./endpoints/change-turbine-status.js";
 import { changeTurbineMaintainanceStatusRouter } from "./endpoints/change-turbine-maintainance-stream.js";
 import { dcrHighRiskAlertRouter } from "./endpoints/dcr-high-risk-alert.js";
+import { dcrMaintenanceSchedulingRouter } from "./endpoints/dcr-maintenance-scheduling.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +30,7 @@ app.use(express.json());
 app.use("/api", changeTurbineStatusRouter);
 app.use("/api", changeTurbineMaintainanceStatusRouter);
 app.use("/api", dcrHighRiskAlertRouter);
+app.use("/api", dcrMaintenanceSchedulingRouter);
 
 // Start server
 app.listen(PORT, () => {

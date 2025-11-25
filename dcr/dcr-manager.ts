@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { pool } from "../db.js";
 import { DCREngine } from "./engine.js";
 import { createHighRiskAlertDCR } from "./high-risk-alert-dcr.js";
+import { createMaintenanceSchedulingDCR } from "./maintenance-scheduling-dcr.js";
 import type { DCRGraph, Event } from "./engine.js";
 
 interface DCRInstance {
@@ -24,6 +25,8 @@ export async function createDCRInstance(
     let graph: DCRGraph;
     if (processType === "high-risk-alert") {
         graph = createHighRiskAlertDCR();
+    } else if (processType === "maintenance-scheduling") {
+        graph = createMaintenanceSchedulingDCR();
     } else {
         throw new Error(`Unknown process type: ${processType}`);
     }
@@ -125,6 +128,7 @@ async function handleEventSideEffects(
     data: any
 ): Promise<void> {
     switch (eventId) {
+        // High Risk Alert process side effects
         case 'E7':
             await pool.execute(
                 `INSERT INTO TurbinesTable (turbine_id, status, last_updated) 
@@ -143,6 +147,47 @@ async function handleEventSideEffects(
                 [turbineID]
             );
             console.log(`  → Updated turbine ${turbineID} status to 'Elevated'`);
+            break;
+
+        // Maintenance Scheduling process side effects  
+        case 'E2': // Draft_Work_Order
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Draft created', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Draft created', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → Created work order draft for turbine ${turbineID}`);
+            break;
+
+        case 'E5': // Procure_Missing_Parts
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Awaiting parts', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Awaiting parts', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → turbine ${turbineID} waiting for spare parts`);
+            break;
+
+        case 'E8': // Schedule_Maintenance
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Scheduled', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Scheduled', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → Maintenance scheduled for turbine ${turbineID}`);
+            break;
+
+        case 'E9': // Complete_Scheduling
+            await pool.execute(
+                `INSERT INTO TurbinesTable (turbine_id, maintainance_status, last_updated) 
+         VALUES (?, 'Ready for execution', NOW())
+         ON DUPLICATE KEY UPDATE maintainance_status = 'Ready for execution', last_updated = NOW()`,
+                [turbineID]
+            );
+            console.log(`  → Turbine ${turbineID} ready for maintenance execution`);
             break;
     }
 }
