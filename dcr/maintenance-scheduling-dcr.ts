@@ -7,9 +7,9 @@ export function createMaintenanceSchedulingDCR(): DCRGraph {
         ['T1', { id: 'T1', name: 'Receive_Work_Order', included: true, executed: false, pending: false, enabled: true }],
 
         // T2-T4: Initial safety and resource checks (parallel after T1)
-        ['T2', { id: 'T2', name: 'Review_PreDeployment_Safety', included: true, executed: false, pending: false, enabled: false }],
-        ['T3', { id: 'T3', name: 'Check_Resource_Availability', included: true, executed: false, pending: false, enabled: false }],
-        ['T4', { id: 'T4', name: 'Review_Weather_Grid_Risk', included: true, executed: false, pending: false, enabled: false }],
+        ['T2', { id: 'T2', name: 'Review_PreDeployment_Safety', included: true, executed: false, pending: false, enabled: true }],
+        ['T3', { id: 'T3', name: 'Check_Resource_Availability', included: true, executed: false, pending: false, enabled: true }],
+        ['T4', { id: 'T4', name: 'Review_Weather_Grid_Risk', included: true, executed: false, pending: false, enabled: true }],
 
         // T5: Critical decision point
         ['T5', { id: 'T5', name: 'Secure_Final_GoNoGo', included: true, executed: false, pending: false, enabled: false }],
