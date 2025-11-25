@@ -26,3 +26,6 @@ Thumbs.db
 logs/
 *.log
 npm-debug.log*
+
+# Documentation guides 
+END_TO_END_TESTING.md
