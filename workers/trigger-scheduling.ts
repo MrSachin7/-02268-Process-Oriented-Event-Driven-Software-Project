@@ -28,7 +28,7 @@ zeebe.createWorker({
 
     try {
       // 1️⃣ CREATE DCR CASE
-      const caseId = await createCase();
+      const caseId = await createCase(turbineID, "Maintenance Work Order");
       if (!caseId) {
         console.error("❌ Failed to create DCR case");
         return job.complete();

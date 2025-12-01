@@ -23,6 +23,8 @@ import "./workers/trigger-scheduling.js";
 
 import { changeTurbineStatusRouter } from "./endpoints/change-turbine-status.js";
 import { changeTurbineMaintainanceStatusRouter } from "./endpoints/change-turbine-maintainance-stream.js";
+import maintenanceDecisionRouter from "./endpoints/maintenance-decision.js";
+import checkDecisionsRouter from "./endpoints/check-decisions.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,6 +35,8 @@ app.use(express.json());
 // Routes
 app.use("/api", changeTurbineStatusRouter);
 app.use("/api", changeTurbineMaintainanceStatusRouter);
+app.use("/api", maintenanceDecisionRouter);
+app.use("/api", checkDecisionsRouter);
 
 // Start server
 app.listen(PORT, () => {
