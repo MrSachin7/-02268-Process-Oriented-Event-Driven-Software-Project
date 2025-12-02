@@ -79,7 +79,7 @@
     </bpmn:intermediateCatchEvent>
     <bpmn:endEvent id="Event_1iksl5s" name="Spare parts acquired">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="spare-parts-acquired" />
+        <zeebe:taskDefinition type="spare-parts-acquired" retries="3" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0ip88xq</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_14zvpfe" />
