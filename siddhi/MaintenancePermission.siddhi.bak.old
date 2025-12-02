@@ -1,0 +1,73 @@
+@App:name("MaintenancePermission")
+@App:description("CEP decision service for turbine maintenance approval")
+
+/*
+=========================================
+1. INPUT REQUEST STREAM
+=========================================
+*/
+
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/maintenance/check',
+    @map(type='json')
+)
+define stream MaintenancePermissionRequestStream (
+    weather string,
+    grid string
+);
+
+/*
+=========================================
+2. OUTPUT STREAM (SEND TO NODE.JS API)
+=========================================
+*/
+
+@sink(
+    type='log',
+    prefix='Maintenance Decision'
+)
+@sink(
+    type='http',
+    publisher.url='http://localhost:3000/api/maintenance-decision',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+    "allow": {{allow}},
+    "reason": "{{reason}}"
+}
+"""))
+)
+define stream MaintenancePermissionResponseStream (
+    allow bool,
+    reason string
+);
+
+/*
+=========================================
+3. DECISION LOGIC
+=========================================
+*/
+
+from MaintenancePermissionRequestStream
+select
+    ifThenElse(
+        weather == "STORMY" or weather == "RAINY",
+        false,
+        ifThenElse(
+            grid == "HIGH_DEMAND",
+            false,
+            true
+        )
+    ) as allow,
+    ifThenElse(
+        weather == "STORMY" or weather == "RAINY",
+        "Blocked: Bad weather",
+        ifThenElse(
+            grid == "HIGH_DEMAND",
+            "Blocked: High grid demand",
+            "Approved: Safe conditions"
+        )
+    ) as reason
+insert into MaintenancePermissionResponseStream;

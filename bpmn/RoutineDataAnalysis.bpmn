@@ -12,7 +12,6 @@
         <bpmn:flowNodeRef>Gateway_0lw4w0h</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_13s464v</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_16isv4n</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Event_142r5ml</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_06dr24t</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_0c97fvo</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1p8srh2</bpmn:flowNodeRef>
@@ -20,6 +19,7 @@
         <bpmn:flowNodeRef>Event_1dqc3ht</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1ri8ylt</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1agd3uj</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_142r5ml</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_0mkej99">
         <bpmn:flowNodeRef>Gateway_0aswsug</bpmn:flowNodeRef>
@@ -80,12 +80,6 @@
     <bpmn:endEvent id="Event_16isv4n">
       <bpmn:incoming>Flow_0aya1gp</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:startEvent id="Event_142r5ml" name="Every 24h">
-      <bpmn:outgoing>Flow_0alol5e</bpmn:outgoing>
-      <bpmn:timerEventDefinition id="TimerEventDefinition_0exu5sc">
-        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/2025-01-01T00:00:00Z/P1D</bpmn:timeCycle>
-      </bpmn:timerEventDefinition>
-    </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_06dr24t" name="Data quality check">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="data-quality-check" />
@@ -135,7 +129,6 @@
     <bpmn:sequenceFlow id="Flow_0xxwfql" sourceRef="Event_1tyqbrm" targetRef="Gateway_0wc2j18" />
     <bpmn:sequenceFlow id="Flow_142qdyr" sourceRef="Gateway_0wc2j18" targetRef="Activity_1p8srh2" />
     <bpmn:sequenceFlow id="Flow_0aya1gp" sourceRef="Activity_1p8srh2" targetRef="Event_16isv4n" />
-    <bpmn:sequenceFlow id="Flow_0alol5e" sourceRef="Event_142r5ml" targetRef="Activity_1agd3uj" />
     <bpmn:sequenceFlow id="Flow_0vjhr3z" sourceRef="Activity_1ri8ylt" targetRef="Event_1dqc3ht" />
     <bpmn:sequenceFlow id="Flow_1vww5me" sourceRef="Event_1dqc3ht" targetRef="Activity_06dr24t" />
     <bpmn:userTask id="Activity_0jaru5j" name="Review for long term trends">
@@ -215,6 +208,13 @@
       <bpmn:incoming>Flow_0alol5e</bpmn:incoming>
       <bpmn:outgoing>Flow_1bx8s9c</bpmn:outgoing>
     </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0alol5e" sourceRef="Event_142r5ml" targetRef="Activity_1agd3uj" />
+    <bpmn:startEvent id="Event_142r5ml" name="Every 24h">
+      <bpmn:outgoing>Flow_0alol5e</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0exu5sc">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/2025-01-01T00:00:00Z/P1D</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:startEvent>
   </bpmn:process>
   <bpmn:message id="Message_17mijkk" name="daily-report-received">
     <bpmn:extensionElements>

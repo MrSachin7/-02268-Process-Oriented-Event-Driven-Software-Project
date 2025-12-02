@@ -67,7 +67,7 @@ zeebe.createWorker({
             },
             body: JSON.stringify({
               name: "spare-parts-acquired",
-              correlationKey: workOrderID,
+              correlationKey: purchaseOrderID,
               variables: {
                 turbineID: turbineID,
               },
@@ -77,7 +77,7 @@ zeebe.createWorker({
 
         if (response.ok) {
           console.log(
-            `✓ Spare parts acquired event correlated successfully for work order ${workOrderID}`
+            `✓ Spare parts acquired event correlated successfully for work order ${purchaseOrderID}`
           );
         } else {
           console.error(
