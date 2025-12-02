@@ -1,0 +1,366 @@
+@App:name("WindTurbineMonitoring")
+
+@App:description("Daily Report + Alerts CEP")
+
+/*
+=========================================
+1. INPUT SENSOR STREAMS
+=========================================
+*/
+
+@info(name='VibrationInputStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/streams/vibrations',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
+define stream VibrationStream (
+    turbineID string,
+    vibrationLevel double,
+    timestamp long
+);
+
+
+@info(name='TemperatureInputStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/streams/temperatures',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
+define stream TemperatureStream (
+    turbineID string,
+    currentTemp double,
+    timestamp long
+);
+
+
+/*
+=========================================
+2. ACTION STREAMS
+=========================================
+*/
+
+@info(name='ChangeTurbineStatusStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/actions/change-turbine-status',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
+@sink(type='log', prefix='Change turbine status event')
+@sink(
+    type='http',
+    publisher.url='http://localhost:3000/api/change-turbine-status',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+    "turbineID": "{{turbineID}}",
+    "status": "{{status}}"
+}
+"""))
+)
+define stream ChangeTurbineStatusStream (
+    turbineID string,
+    status string
+);
+
+@info(name='ChangeTurbineMaintainanceStatusStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/actions/change-turbine-maintainance-status',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
+@sink(type='log', prefix='Change turbine maintainance status event')
+@sink(
+    type='http',
+    publisher.url='http://localhost:3000/api/change-turbine-maintainance-status',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+    "turbineID": "{{turbineID}}",
+    "maintainanceStatus": "{{maintainanceStatus}}"
+}
+"""))
+)
+define stream ChangeTurbineMaintainanceStream (
+    turbineID string,
+    maintainanceStatus string
+);
+
+@info(name='GenerateDailyReportActionStream')
+@source(
+    type='http',
+    receiver.url='http://localhost:8081/actions/generate-daily-report',
+    @map(type='json', enclosing.element="$", fail.on.missing.attribute="false")
+)
+define stream GenerateDailyReportActionStream (
+    instanceID string
+);
+
+
+/*
+=========================================
+3. INTERMEDIATE / INTERNAL STREAMS
+=========================================
+*/
+
+define stream DailyVibrationStatsInternal (
+    instanceID string,
+    turbineID string,
+    vibMin double,
+    vibMax double,
+    vibAvg double,
+    vibCount long
+);
+
+define stream DailyTemperatureStatsInternal (
+    instanceID string,
+    turbineID string,
+    tempMin double,
+    tempMax double,
+    tempAvg double,
+    tempCount long
+);
+
+define stream CombinedTurbineStatsInternal (
+    instanceID string,
+    turbineID string,
+    vibMin double,
+    vibMax double,
+    vibAvg double,
+    vibCount long,
+    tempMin double,
+    tempMax double,
+    tempAvg double,
+    tempCount long
+);
+
+
+
+/*
+=========================================
+4. OUTPUT STREAMS → CAMUNDA
+=========================================
+*/
+
+@info(name='HighRiskAlertOutputStream')
+@sink(
+    type='http',
+    publisher.url='http://localhost:8088/v2/messages/publication',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+  "name": "HighRiskAlert",
+  "variables": {
+    "turbineID": "{{turbineID}}",
+    "reason": "{{reason}}",
+    "alertTimestamp": {{alertTimestamp}},
+    "avgVibration": {{avgVibration}},
+    "tempMetric": {{tempMetric}}
+  }
+}
+"""))
+)
+define stream HighRiskAlertOutputStream (
+    turbineID string,
+    reason string,
+    alertTimestamp long,
+    avgVibration double,
+    tempMetric double
+);
+
+@info(name='EmergencyCatastropheAlertOutputStream')
+@sink(
+    type='http',
+    publisher.url='http://localhost:8088/v2/messages/publication',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+  "name": "EmergencyCatastropheAlert",
+  "variables": {
+    "turbineID": "{{turbineID}}",
+    "reason": "{{reason}}",
+    "alertTimestamp": {{alertTimestamp}},
+    "avgVibration": {{avgVibration}},
+    "tempMetric": {{tempMetric}}
+  }
+}
+"""))
+)
+define stream EmergencyCatastropheAlertOutputStream (
+    turbineID string,
+    reason string,
+    alertTimestamp long,
+    avgVibration double,
+    tempMetric double
+);
+
+@info(name='DailyReportOutputStream')
+@sink(
+    type='http',
+    publisher.url='http://localhost:8088/v2/messages/correlation',
+    method='POST',
+    headers='Content-Type:application/json',
+    @map(type='json', @payload("""
+{
+  "name": "daily-report-received",
+  "correlationKey": "{{instanceID}}",
+  "variables": {
+    "turbineID": "{{turbineID}}",
+    "vibMin": {{vibMin}},
+    "vibMax": {{vibMax}},
+    "vibAvg": {{vibAvg}},
+    "vibCount": {{vibCount}},
+    "tempMin": {{tempMin}},
+    "tempMax": {{tempMax}},
+    "tempAvg": {{tempAvg}},
+    "tempCount": {{tempCount}},
+    "reportTimestamp": {{reportTimestamp}}
+  }
+}
+"""))
+)
+define stream DailyReportOutputStream (
+    instanceID string,
+    turbineID string,
+    vibMin double,
+    vibMax double,
+    vibAvg double,
+    vibCount long,
+    tempMin double,
+    tempMax double,
+    tempAvg double,
+    tempCount long,
+    reportTimestamp long
+);
+
+
+/*
+=========================================
+5. AGGREGATIONS (REAL METRICS)
+=========================================
+*/
+
+define aggregation VibrationDailyAgg
+from VibrationStream
+select turbineID,
+       min(vibrationLevel) as vibMin,
+       max(vibrationLevel) as vibMax,
+       avg(vibrationLevel) as vibAvg,
+       count() as vibCount
+group by turbineID
+aggregate by timestamp every day;
+
+define aggregation TemperatureDailyAgg
+from TemperatureStream
+select turbineID,
+       min(currentTemp) as tempMin,
+       max(currentTemp) as tempMax, 
+       avg(currentTemp) as tempAvg,
+       count() as tempCount
+group by turbineID
+aggregate by timestamp every day;
+
+
+/*
+=========================================
+6. QUERIES
+=========================================
+*/
+
+-- Query to retrieve vibration stats for ALL turbines
+@info(name='Query_Vibration_Daily')
+from GenerateDailyReportActionStream as A
+    join VibrationDailyAgg as V
+within "2024-01-01 00:00:00", "2099-12-31 23:59:59"
+per "days"
+select A.instanceID,
+       V.turbineID,
+       V.vibMin,
+       V.vibMax,
+       V.vibAvg,
+       V.vibCount
+insert into DailyVibrationStatsInternal;
+
+-- Query to retrieve temperature stats for ALL turbines
+@info(name='Query_Temperature_Daily')
+from GenerateDailyReportActionStream as A
+    join TemperatureDailyAgg as T
+within "2024-01-01 00:00:00", "2099-12-31 23:59:59"
+per "days"
+select A.instanceID,
+       T.turbineID,
+       T.tempMin,
+       T.tempMax,
+       T.tempAvg,
+       T.tempCount
+insert into DailyTemperatureStatsInternal;
+
+-- Combine vibration and temperature stats to generate daily report for each turbine
+@info(name='Query_Combine_Daily_Report')
+from DailyVibrationStatsInternal as V
+    join DailyTemperatureStatsInternal as T
+    on V.instanceID == T.instanceID and V.turbineID == T.turbineID
+select V.instanceID,
+       V.turbineID,
+       V.vibMin,
+       V.vibMax,
+       V.vibAvg,
+       V.vibCount,
+       T.tempMin,
+       T.tempMax,
+       T.tempAvg,
+       T.tempCount,
+       eventTimestamp() as reportTimestamp
+insert into DailyReportOutputStream;
+
+-- High risk alert: High vibration (rolling window)
+@info(name='Query_HighVibration_Alert')
+from VibrationStream#window.timeBatch(2 sec)
+select turbineID,
+       'High vibration detected' as reason,
+       eventTimestamp() as alertTimestamp,
+       avg(vibrationLevel) as avgVibration,
+       0.0 as tempMetric
+group by turbineID
+having avgVibration > 8.0
+insert into HighRiskAlertOutputStream;
+
+-- High risk alert: High temperature (rolling window)
+@info(name='Query_HighTemperature_Alert')
+from TemperatureStream#window.timeBatch(2 sec)
+select turbineID,
+       'High temperature detected' as reason,
+       eventTimestamp() as alertTimestamp,
+       0.0 as avgVibration,
+       avg(currentTemp) as tempMetric
+group by turbineID
+having tempMetric > 85.0
+insert into HighRiskAlertOutputStream;
+
+-- Emergency catastrophe alert: Extreme vibration (critical levels)
+@info(name='Query_EmergencyVibration_Alert')
+from VibrationStream#window.timeBatch(2 sec)
+select turbineID,
+       'CATASTROPHIC vibration detected - EMERGENCY SHUTDOWN REQUIRED' as reason,
+       eventTimestamp() as alertTimestamp,
+       avg(vibrationLevel) as avgVibration,
+       0.0 as tempMetric
+group by turbineID
+having avgVibration > 15.0
+insert into EmergencyCatastropheAlertOutputStream;
+
+-- Emergency catastrophe alert: Extreme temperature (critical levels)
+@info(name='Query_EmergencyTemperature_Alert')
+from TemperatureStream#window.timeBatch(2 sec)
+select turbineID,
+       'CATASTROPHIC temperature detected - EMERGENCY SHUTDOWN REQUIRED' as reason,
+       eventTimestamp() as alertTimestamp,
+       0.0 as avgVibration,
+       avg(currentTemp) as tempMetric
+group by turbineID
+having tempMetric > 120.0
+insert into EmergencyCatastropheAlertOutputStream;
